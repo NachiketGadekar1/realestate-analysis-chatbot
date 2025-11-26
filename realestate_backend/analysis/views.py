@@ -14,26 +14,29 @@ YEAR_COL = 'year' # Assuming 'year' is the column name for the year
 def analyze_data(request):
     if request.method == 'POST':
         try:
-            # Construct a robust path to the Excel file.
-            # This assumes the script is in 'realestate_backend/analysis/views.py'
-            # and 'Sample_data.xlsx' is in the project root.
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-            excel_path = os.path.join(project_root, 'Sample_data.xlsx')
+            # Check for file upload
+            if 'file' in request.FILES:
+                uploaded_file = request.FILES['file']
+                # Use the uploaded file in memory
+                df = pd.read_excel(uploaded_file)
+                query_area = request.POST.get('query', '').lower()
+            else:
+                # Fallback to local file
+                project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+                excel_path = os.path.join(project_root, 'Sample_data.xlsx')
 
-            if not os.path.exists(excel_path):
-                return JsonResponse({"error": f"Sample_data.xlsx not found at the expected path: {excel_path}"}, status=500)
-
-            df = pd.read_excel(excel_path)
+                if not os.path.exists(excel_path):
+                    return JsonResponse({"error": f"Sample_data.xlsx not found at the expected path: {excel_path}"}, status=500)
+                
+                df = pd.read_excel(excel_path)
+                data = json.loads(request.body)
+                query_area = data.get('query', '').lower()
 
             # Verify that all necessary columns exist in the DataFrame
             required_cols = [AREA_COL, PRICE_COL, DEMAND_COL, YEAR_COL]
             missing_cols = [col for col in required_cols if col not in df.columns]
             if missing_cols:
                 return JsonResponse({"error": f"Missing required columns in Excel file: {', '.join(missing_cols)}"}, status=500)
-
-            # Process request body
-            data = json.loads(request.body)
-            query_area = data.get('query', '').lower()
 
             if not query_area:
                  return JsonResponse({"error": "A query area must be provided."}, status=400)
@@ -43,7 +46,7 @@ def analyze_data(request):
 
             if filtered_df.empty:
                 return JsonResponse({
-                    "summary": f"No data found for the area: {data.get('query', 'N/A').capitalize()}.",
+                    "summary": f"No data found for the area: {query_area.capitalize()}.",
                     "chartData": {"years": [], "price": [], "demand": []},
                     "table": []
                 })
@@ -61,7 +64,7 @@ def analyze_data(request):
             demands = [round(d) for d in trend_data[DEMAND_COL].tolist()] # Demands are whole numbers
 
             # Generate a mock summary
-            summary = (f"Analysis for {data.get('query', 'N/A').capitalize()}: "
+            summary = (f"Analysis for {query_area.capitalize()}: "
                        f"The average price ranged from {filtered_df[PRICE_COL].min():.2f} to {filtered_df[PRICE_COL].max():.2f} "
                        f"between {int(filtered_df[YEAR_COL].min())} and {int(filtered_df[YEAR_COL].max())}. "
                        f"The total demand over this period was approximately {int(filtered_df[DEMAND_COL].sum())} units.")

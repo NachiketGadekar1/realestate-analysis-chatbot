@@ -1,10 +1,12 @@
 import ChatInterface from './components/ChatInterface';
-import './App.css'; // Keep existing CSS if needed, or remove if ChatInterface uses its own styles
+import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <ChatInterface />
+      <main className="main-content">
+        <ChatInterface />
+      </main>
     </div>
   );
 }
