@@ -12,7 +12,6 @@ This project implements a full-stack web application for analyzing real estate d
 -   **Detailed Data Table:** Presents filtered data in a scrollable, styled table with a fixed header and numerical alignment.
 -   **CSV Download:** Allows users to download the filtered table data as a CSV file.
 -   **Responsive Design:** Styled with Bootstrap for a professional and consistent look across devices.
--   **Stable Layout:** Fixed header and footer for improved user experience.
 
 ## Technologies Used
 
